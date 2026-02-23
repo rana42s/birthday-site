@@ -7,9 +7,9 @@ const cakeImg = document.getElementById("cakeImg");
 const match = document.getElementById("match");
 const resetBtn = document.getElementById("resetBtn");
 
-
 let isHandDetected = false;
 let handPosition = { x: 0.5, y: 0.5 };
+
 
 let isCakeLit = false;
 let isCandlesBlownOut = false;
@@ -17,19 +17,41 @@ let isCandlesBlownOut = false;
 const LIGHT_DISTANCE = 60;
 const BLOW_THRESHOLD = 40;
 
+// Audio elements
+const soundEffects = {
+    // Using shorter, more direct audio links for better responsiveness
+    light: new Audio('https://www.soundjay.com/buttons/sounds/button-30.mp3'), // Match/Light
+    blow: new Audio('https://www.soundjay.com/nature/sounds/wind-01.mp3'),     // Blow/Wind
+    celebrate: new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3') // Success
+};
 
+// Unlock audio on first touch/click
+const unlockAudio = () => {
+    Object.values(soundEffects).forEach(sound => {
+        sound.play().then(() => {
+            sound.pause();
+            sound.currentTime = 0;
+        }).catch(() => { });
+    });
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+};
+document.addEventListener('click', unlockAudio);
+document.addEventListener('touchstart', unlockAudio);
 
 const hands = new Hands({
+
     locateFile: (file) =>
         `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
 });
 
 hands.setOptions({
-    maxNumHands: 1,
+    maxNumHands: 2,
     modelComplexity: 1,
     minDetectionConfidence: 0.7,
     minTrackingConfidence: 0.5,
 });
+
 
 hands.onResults(onHandsResults);
 
@@ -63,7 +85,6 @@ function onHandsResults(results) {
         // Invert X because the webcam view feels like a mirror
         handPosition = { x: 1 - lm.x, y: lm.y };
 
-
         updateMatchPosition();
         checkCandleLighting();
     } else {
@@ -83,6 +104,8 @@ function updateMatchPosition() {
     match.style.left = `${x}px`;
     match.style.top = `${y}px`;
 }
+
+
 
 function checkCandleLighting() {
     if (isCakeLit || isCandlesBlownOut) return;
@@ -111,10 +134,13 @@ function lightCake() {
 
     cakeImg.src = "assets/cake_lit.png";
 
-    match.style.display = "none";
+    soundEffects.light.play().catch(e => console.log("Audio play blocked"));
 
+    match.style.display = "none";
     initBlowDetection();
 }
+
+
 
 let audioContext;
 let analyser;
@@ -161,9 +187,40 @@ function blowOutCandles() {
     isCandlesBlownOut = true;
     cakeImg.src = "assets/cake_unlit.png";
 
+    soundEffects.blow.currentTime = 0;
+    soundEffects.blow.play().catch(e => console.log("Audio play blocked"));
+
+    triggerConfetti();
+
     // Show reset button
     resetBtn.style.display = "block";
 }
+
+
+function triggerConfetti() {
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+        confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+    }, 250);
+
+    soundEffects.celebrate.play().catch(e => console.log("Audio play blocked"));
+}
+
 
 function resetApp() {
     isCakeLit = false;
@@ -173,11 +230,12 @@ function resetApp() {
     match.style.display = "block";
     resetBtn.style.display = "none";
 
-    // Position match back to hand if detected
     if (isHandDetected) {
         updateMatchPosition();
     }
 }
+
+
 
 resetBtn.addEventListener("click", resetApp);
 
