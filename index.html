@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Happy Birthday!</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <h1 class="page-title">Happy Birthday! 🎂</h1>
+
+    <div class="content">
+        <div class="webcam">
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="cake-area" id="cakeArea">
+            <img id="cakeImg" src="assets/cake_unlit.png" alt="" class="cake" />
+            <img id="match" src="assets/match.png" alt="" class="match" />
+        </div>
+
+        <button id="resetBtn" class="reset-button">Tekrar Üfle! 🎂</button>
+    </div>
+
+    <!-- MediaPipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
