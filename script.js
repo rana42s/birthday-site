@@ -56,22 +56,25 @@ hands.setOptions({
 hands.onResults(onHandsResults);
 
 async function initCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-    await video.play();
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
     const camera = new Camera(video, {
         onFrame: async () => {
+            if (canvas.width !== video.videoWidth) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
             await hands.send({ image: video });
         },
-        width: video.videoWidth,
-        height: video.videoHeight,
+        width: 640,
+        height: 480,
+        facingMode: 'user'
     });
 
-    camera.start();
+    try {
+        await camera.start();
+    } catch (e) {
+        console.error("Camera error:", e);
+        alert("Kamera başlatılamadı: " + e.message);
+    }
 }
 
 function onHandsResults(results) {
