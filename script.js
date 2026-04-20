@@ -60,8 +60,6 @@ async function initCamera() {
             }
             await hands.send({ image: video });
         },
-        width: 640,
-        height: 480,
         facingMode: 'user'
     });
 
